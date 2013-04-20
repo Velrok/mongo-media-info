@@ -3,13 +3,13 @@
 from setuptools import setup, find_packages
 
 
-find_packages()
-
-setup(name='Distutils',
-      version='0.0',
+setup(name='mongo-media-info',
+      version='0.1',
       description='mongo-media-info',
       author='Velrok',
+      packages=find_packages(),
       author_email='waldemar.schwan@gmail.com',
       url='https://github.com/Velrok/mongo-media-info',
-      dependency_links=['https://github.com/doganaydin/themoviedb/archive/master.zip']
+      install_requires=['requests', 'tmdb', 'pymongo'],
+      dependency_links=['git+https://github.com/doganaydin/themoviedb@327be58d0dfef87f5fcdce3aaaa83e5a12a6e5af']
      )
