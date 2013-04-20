@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup, find_packages
+
+
+find_packages()
 
 setup(name='Distutils',
       version='0.0',
@@ -8,5 +11,5 @@ setup(name='Distutils',
       author='Velrok',
       author_email='waldemar.schwan@gmail.com',
       url='https://github.com/Velrok/mongo-media-info',
-      packages=['distutils', 'distutils.command', 'mongo_media_info'],
+      dependency_links=['https://github.com/doganaydin/themoviedb/archive/master.zip']
      )
