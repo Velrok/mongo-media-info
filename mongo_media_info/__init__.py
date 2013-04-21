@@ -1,3 +1,7 @@
+"""
+A the movie db cache layer that stores the values in the configured
+mongo db and local image path.
+"""
 import tmdb
 import requests
 import pymongo
@@ -29,7 +33,6 @@ except KeyError as e:
 
 try:
     img_cahe_dir = os.environ['MONGO_MEDIA_INFO_IMG_CACHE_DIR']
-    # img_cahe_dir = "/tmp/image_cache"
 except KeyError as e:
     print "You need to configure a path to download images to. Plear set the environment variable MONGO_MEDIA_INFO_IMG_CACHE_DIR."
     raise e
@@ -72,6 +75,12 @@ def __movie_to_dict(movie):
 
 
 def reset_cache():
+    """
+    Resets the cache.
+
+    This drops all the mongo db collections used as well as
+    deletes all the images downloaded.
+    """
     movie_queries.drop()
     movies.drop()
     rm('-r', __image_cache_dir())
@@ -79,6 +88,16 @@ def reset_cache():
 
 
 def movie_details(movie_id):
+    """
+    Fetch the details for a given movie id.
+
+    This will prefer the cache, if its not in the cache tmdb is queried,
+    which takes mutch more time. In that case it also donwloads all the
+    relevant images, poster / backdrop / ... .
+
+    You should run warm_cache() in a batch job beforhand if you can
+    anticipate which movies will probably be queried for.
+    """
     r = movies.find_one({'_id': movie_id})
     if r:
         print "cachte hit for movie details " + r['value']['title']
@@ -91,6 +110,15 @@ def movie_details(movie_id):
 
 
 def find_movies(query):
+    """
+    Query the movie db. Best results are obtained by "Moviename (year)".
+
+    This will prefer the cache. If its not found in the cache tmdb will
+    be queried, which take much more time.
+
+    You can prevent this my running warm_cache() as batch process
+    beforhand.
+    """
     r = movie_queries.find_one({'_id': query})
     if r:
         print "cache hit for " + query
@@ -104,6 +132,13 @@ def find_movies(query):
 
 
 def warm_cache(movie_names):
+    """
+    Given a list of movie queries, this will fetch and cache all the
+    results for each query and download and cache all the details of
+    each movie found.
+
+    Run this as a worker process so to speed up calls during runtime.
+    """
     for movie_name in movie_names:
         for movie in find_movies(movie_name):
             movie_details(movie['id'])
