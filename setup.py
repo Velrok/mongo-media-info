@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 
-setup(name='mongo-media-info',
+setup(name='mongo_media_info',
       version='0.1',
       description='mongo-media-info',
       author='Velrok',
