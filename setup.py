@@ -10,6 +10,6 @@ setup(name='mongo-media-info',
       packages=find_packages(),
       author_email='waldemar.schwan@gmail.com',
       url='https://github.com/Velrok/mongo-media-info',
-      install_requires=['requests', 'tmdb', 'pymongo'],
+      install_requires=['sh', 'PIL', 'requests', 'tmdb', 'pymongo'],
       dependency_links=['git+https://github.com/doganaydin/themoviedb@327be58d0dfef87f5fcdce3aaaa83e5a12a6e5af']
      )

@@ -2,31 +2,48 @@ import tmdb
 import requests
 import pymongo
 import os
+from sh import rm, mkdir
 from PIL import Image
 from StringIO import StringIO
 
 # config
-api_key = '2eceb4866c7ff0659613dc805c591232'
-mongo_db_name = "tmdb_cache"
-img_dl_path = "/tmp/image_cache"
+try:
+    api_key = os.environ['TMDB_API_KEY']
+    tmdb.configure(api_key)
+except KeyError as e:
+    print "You need to set the environment variable TMDB_API_KEY to your the movie db key."
+    raise e
 
-# init tmdb
-tmdb.configure(api_key)
+try:
+    mongo_db_name = os.environ['MONGO_MEDIA_INFO_MONGO_DB']
+    mongo_client = pymongo.MongoClient()
+    mongo_db = mongo_client[mongo_db_name]
 
-# init mongo
-mongo_client = pymongo.MongoClient()
-mongo_db = mongo_client[mongo_db_name]
+    # mongo collections
+    movie_queries = mongo_db.movie_queries
+    movies = mongo_db.movies
 
-# mongo collections
-movie_queries = mongo_db.movie_queries
-movies = mongo_db.movies
+except KeyError as e:
+    print "You need to configure the mongo db to use by setting the environment variable MONGO_MEDIA_INFO_MONGO_DB."
+    raise e
+
+try:
+    img_cahe_dir = os.environ['MONGO_MEDIA_INFO_IMG_CACHE_DIR']
+    # img_cahe_dir = "/tmp/image_cache"
+except KeyError as e:
+    print "You need to configure a path to download images to. Plear set the environment variable MONGO_MEDIA_INFO_IMG_CACHE_DIR."
+    raise e
+
+
+def __image_cache_dir():
+    return os.path.abspath(img_cahe_dir)
 
 
 def __cache_image(path):
     img_name = os.path.basename(path)
     r = requests.get(path)
     i = Image.open(StringIO(r.content))
-    destination = os.path.join(os.path.abspath(img_dl_path),
+    destination = os.path.join(__image_cache_dir(),
                                img_name)
     i.save(destination)
     return destination
@@ -56,6 +73,9 @@ def __movie_to_dict(movie):
 
 def reset_cache():
     movie_queries.drop()
+    movies.drop()
+    rm('-r', __image_cache_dir())
+    mkdir('-p', __image_cache_dir())
 
 
 def movie_details(movie_id):
@@ -82,7 +102,8 @@ def find_movies(query):
                               'result': movies})
         return movies
 
-# reset_cache()
-movie_data = find_movies('Iron Man (2008)')[0]
-movie = movie_details(movie_data['id'])
-print movie
+
+def warm_cache(movie_names):
+    for movie_name in movie_names:
+        for movie in find_movies(movie_name):
+            movie_details(movie['id'])
