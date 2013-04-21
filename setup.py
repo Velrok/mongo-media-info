@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 
 setup(name='mongo_media_info',
-      version='0.1',
+      version='1.0.0',
       description='mongo-media-info',
       author='Velrok',
       packages=find_packages(),
